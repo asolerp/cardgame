@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@chainlink/contracts": "^0.1.6",
+    "@openzeppelin/contracts": "^3.4.1",
+    "chai": "^4.3.3",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.2.1",
+    "dotenv": "^8.2.0"
+  }
+}
