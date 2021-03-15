@@ -10,10 +10,22 @@ const App = () => {
   const [accounts, setAccounts] = useState(null);
   const [contract, setContract ] = useState(null);
   const [balance, setBalance] = useState(0)
+  const [userCards, setUserCards] = useState([])
 
   const getBalanceOfAccount = useCallback(async () => {
     const result = await contract.methods.balanceOf(accounts[0]).call()
     setBalance(result)
+  },[accounts, contract])
+
+  const getUserNFTs = useCallback(async () => {
+    try {
+      const list = await contract.methods.tokensOfOwner(accounts[0]).call()
+      const tokenURIs = await Promise.all(list.map(async (tokenID) => await contract.methods.tokenURI(tokenID).call()))
+      const cards = await Promise.all(tokenURIs.map(async (cardURI) => await fetch(cardURI).then(response => response.json())))
+      setUserCards(cards)
+    } catch (err) {
+      console.log(err)
+    }
   },[accounts, contract])
 
   const loadWeb3 = async () => {
@@ -55,20 +67,30 @@ const App = () => {
   useEffect(() => {
     if (contract) {
       getBalanceOfAccount()
+      getUserNFTs()
     }
   },[contract, accounts, getBalanceOfAccount])
 
+  useEffect(() => {})
 
-  const handleCreateToken = async () => {
+
+  const handleCreateToken = async (option) => {
     try {
-      await contract.methods.awardItem(accounts[0]).send({from: accounts[0]})
+      await contract.methods.mint(option, accounts[0]).send({from: accounts[0]})
       getBalanceOfAccount()
+      getUserNFTs()
     } catch (err) {
       console.log(err)
     }
   }
 
-
+  const handleListToken = async () => {
+    try {
+      getUserNFTs()
+    } catch (err) {
+      console.log(err)
+    }
+  }
 
 
   if (!web) {
@@ -77,17 +99,23 @@ const App = () => {
 
   return (
     <div className="App">
-      <h1>Good to Go!</h1>
-      <p>Your Truffle Box is installed and ready.</p>
-      <h2>Smart Contract Example</h2>
+      <h1>Juego de Cartas!</h1>
       <p>
-        If your contracts compiled and migrated successfully, below will show
-        a stored value of 5 (by default).
+        Tienes <strong>{balance}</strong> NFTs.
       </p>
-      <p>
-        Your balance is <strong>{balance}</strong>.
-      </p>
-      <button onClick={() => handleCreateToken()}>Crear Token</button>
+      <div className="cards-wrapper">
+        {
+          userCards.length > 0 ? userCards.map((card, i) => 
+          <div  key={i} style={{marginRight: 10, marginLeft: 10}}>
+            <h2>{card.name}</h2>
+            <img className="card" src={card.image} alt={card.name} />
+          </div>
+          ) : <h1>No tienes ninguna carta...</h1>
+        }
+      </div>
+      <button onClick={() => handleCreateToken(1)}>Comprar Opcion 1</button>
+      <button onClick={() => handleCreateToken(2)}>Comprar Opcion 2</button>
+      {/* <button onClick={() => handleListToken()}>List all tokens</button> */}
     </div>
   );
   }
