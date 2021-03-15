@@ -8,6 +8,8 @@ contract Card is ERC721 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     mapping(string => uint8) hashes;
+    mapping(address => uint256[]) nfts;
+    mapping(uint256 => address) cardIndexToOwner;
 
     constructor() public ERC721("CardGame", "CARDGAME") {}
 
@@ -19,6 +21,8 @@ contract Card is ERC721 {
         uint256 newItemId = _tokenIds.current();
         _mint(recipient, newItemId);
         _setTokenURI(newItemId, 'ipfs://Qmd5EKJ3aGYQ5w1jZqfr5Kjpvjtc1bmTEcZQps3QcJVWPo');
+        nfts[address].push(newItemId);
+        cardIndexToOwner[newItemId] = address;
         return newItemId;
     }
 
@@ -38,7 +42,7 @@ contract Card is ERC721 {
         uint256 cardId;
 
         for (cardId = 1; cardId <= totalCarts; cardId++) {
-            if (kittyIndexToOwner[catId] == _owner) {
+            if (cardIndexToOwner[cardId] == _owner) {
                 result[resultIndex] = cardId;
                 resultIndex++;
             }
